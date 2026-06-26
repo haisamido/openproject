@@ -1,0 +1,30 @@
+name: openproject
+
+networks:
+  openproject:
+    driver: bridge
+
+services:
+  openproject:
+    image: openproject/openproject:17
+    ports:
+      - "127.0.0.1:16969:80"
+    environment:
+      SECRET_KEY_BASE: "foobar"
+      OPENPROJECT_HOST__NAME: "localhost:16969"
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: "127.0.0.1:16969"
+      OPENPROJECT_HTTPS: "false"
+      OPENPROJECT_DEFAULT__LANGUAGE: "en"
+    volumes:
+      - "./pgdata:/var/openproject/pgdata"
+      - "./assets:/var/openproject/assets"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health_checks/default"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    networks:
+      - openproject
+    stdin_open: true
+    tty: true
