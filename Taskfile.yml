@@ -48,6 +48,27 @@ tasks:
     vars:
       QUERY: '{{.QUERY | default "\\dt"}}'
 
+  export-gantt:
+    desc: Export Gantt data as CSV (optional PROJECT= to filter by project name)
+    cmd: |
+      echo "COPY (
+        SELECT wp.id, wp.subject, s.name AS status, t.name AS type,
+          wp.start_date, wp.due_date, wp.duration, wp.done_ratio AS percent_done,
+          p.name AS project,
+          wp.parent_id,
+          (SELECT parent_wp.subject FROM work_packages parent_wp WHERE parent_wp.id = wp.parent_id) AS parent_subject,
+          (SELECT string_agg(r.relation_type || ':' || CASE WHEN r.from_id = wp.id THEN r.to_id ELSE r.from_id END, '; ' ORDER BY r.relation_type)
+           FROM relations r WHERE r.from_id = wp.id OR r.to_id = wp.id) AS relations
+        FROM work_packages wp
+        LEFT JOIN statuses s ON wp.status_id = s.id
+        LEFT JOIN types t ON wp.type_id = t.id
+        LEFT JOIN projects p ON wp.project_id = p.id
+        {{.WHERE}}
+        ORDER BY wp.start_date NULLS LAST, wp.id
+      ) TO STDOUT WITH CSV HEADER" | {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} exec -T {{.SERVICE}} su - postgres -c "psql -d openproject"
+    vars:
+      WHERE: "{{if .PROJECT}}WHERE p.name = '{{.PROJECT}}'{{end}}"
+
   destroy:
     desc: Stop containers and remove volumes
     cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} down -v"
