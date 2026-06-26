@@ -8,40 +8,46 @@ vars:
 tasks:
   up:
     desc: Start OpenProject in the background
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} up -d
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} up -d"
 
   down:
     desc: Stop and remove containers
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} down
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} down"
 
   start:
     desc: Start existing (stopped) containers
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} start
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} start"
 
   stop:
     desc: Stop running containers without removing them
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} stop
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} stop"
 
   restart:
     desc: Restart containers
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} restart
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} restart"
 
   logs:
     desc: Follow container logs
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} logs -f {{.SERVICE}}
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} logs -f {{.SERVICE}}"
 
   ps:
     desc: Show container status
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} ps
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} ps"
 
   shell:
     desc: Open a bash shell in the container
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} exec {{.SERVICE}} bash
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} exec {{.SERVICE}} bash"
 
   pull:
     desc: Pull the latest image
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} pull
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} pull"
+
+  db:
+    desc: Run a psql query (default lists tables, override with QUERY=)
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} exec {{.SERVICE}} su - postgres -c \"psql -d openproject -c '{{.QUERY}}'\""
+    vars:
+      QUERY: '{{.QUERY | default "\\dt"}}'
 
   destroy:
     desc: Stop containers and remove volumes
-    cmd: {{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} down -v
+    cmd: "{{.CONTAINER_BIN}} compose -f {{.COMPOSE_FILE}} down -v"
